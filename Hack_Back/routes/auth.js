@@ -6,10 +6,18 @@ import jwt from "jsonwebtoken";
 const router = express.Router();
 
 // Signup Route
-// Signup Route
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, password, contact, userType, recipientType, latitude, longitude } = req.body;
+    const {
+      name,
+      email,
+      password,
+      contact,
+      userType,
+      recipientType,
+      latitude,
+      longitude,
+    } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
