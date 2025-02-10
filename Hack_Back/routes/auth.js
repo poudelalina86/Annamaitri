@@ -1,15 +1,15 @@
 import express from "express";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken"; // For generating JWT tokens
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
 // Signup Route
+// Signup Route
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, password, contact, userType, recipientType } =
-      req.body;
+    const { name, email, password, contact, userType, recipientType, latitude, longitude } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -28,6 +28,8 @@ router.post("/signup", async (req, res) => {
       contact,
       userType,
       recipientType,
+      latitude,
+      longitude,
     });
     await newUser.save();
 
@@ -37,48 +39,53 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+// Login Route - /api/auth/login
 router.post("/login", async (req, res) => {
-    const { email, password } = req.body;
-    try {
-      // Check if user exists
-      const user = await User.findOne({ email });
-      console.log('Found user:', user ? 'yes' : 'no');
-      
-      if (!user) {
-        return res.status(400).json({ message: "Invalid email or password" });
-      }
-  
-      // Compare passwords
-      const isMatch = await bcrypt.compare(password, user.password);
-      console.log('Password match:', isMatch ? 'yes' : 'no');
-      
-      if (!isMatch) {
-        return res.status(400).json({ message: "Invalid email or password" });
-      }
-  
-      // Verify JWT_SECRET exists
-      if (!process.env.JWT_SECRET) {
-        console.error('JWT_SECRET is not defined');
-        return res.status(500).json({ message: "Server configuration error" });
-      }
-  
-      const payload = {
-        userId: user._id,
-        email: user.email,
-      };
-  
-      const token = jwt.sign(payload, process.env.JWT_SECRET, {
-        expiresIn: "1h",
-      });
-  
-      res.json({
-        message: "Login successful",
-        token,
-        user: { email: user.email, userType: user.userType }
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      res.status(500).json({ message: "Server error" });
+  const { email, password } = req.body;
+
+  try {
+    // Input validation
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Please provide email and password" });
     }
-  });
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Create token
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, userType: user.userType },
+      process.env.JWT_SECRET || "yourSecretKey", // For testing without .env
+      { expiresIn: "1h" }
+    );
+
+    // Send successful response
+    res.json({
+      message: "Login successful",
+      token,
+      userType: user.userType,
+      user: {
+        email: user.email,
+        userType: user.userType,
+        latitude: user.latitude,
+        longitude: user.longitude,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 export default router;
