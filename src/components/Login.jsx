@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const navigate = useNavigate(); // Hook to navigate
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [showErrorMessage, setShowErrorMessage] = useState(false);
 
   const handleInputChange = (event) => {
@@ -17,24 +14,35 @@ const Login = () => {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log("Login submitted:", formData);
 
-    // Simulate successful login
-    if (
-      formData.email === "user@example.com" &&
-      formData.password === "password"
-    ) {
-      setShowErrorMessage(false); // Hide error message on success
-      setTimeout(() => {
-        navigate("/donorDashboard"); // Redirect after successful login
-      }, 1000);
-    } else {
-      setShowErrorMessage(true); // Show error if login fails
-      setTimeout(() => {
-        setShowErrorMessage(false); // Hide error message after 3 seconds
-      }, 3000);
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token); // Store token for authentication
+        alert("Login Successful!");
+
+        // Redirect based on user type
+        if (data.userType === "donor") {
+          navigate("/donorDashboard");
+        } else {
+          navigate("/receiverDashboard");
+        }
+      } else {
+        setShowErrorMessage(true);
+        setTimeout(() => setShowErrorMessage(false), 3000);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setShowErrorMessage(true);
     }
   };
 
@@ -94,7 +102,6 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Error Message Popup */}
         {showErrorMessage && (
           <div className="mt-4 text-center text-red-600 bg-red-100 p-3 rounded-md shadow-md">
             <p>Invalid email or password. Please try again.</p>
