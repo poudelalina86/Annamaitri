@@ -19,7 +19,7 @@ export default async function donateFood(req, res) {
   try {
     // Find the donor by email (or any other field that identifies the donor)
     
-      const decode = jwt.verify(token, "yourSecretKey");
+    const decode = jwt.verify(token, "yourSecretKey");
     const donor = await User.findOne({ email: decode.email });
 
     if (!donor) {

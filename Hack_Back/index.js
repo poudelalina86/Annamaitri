@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.js";
 import foodRoutes from "./routes/food.js";
 import connectDB from "./db.connect.js";
+import donorRoutes from "./routes/donors.js";
+
 
 dotenv.config();
 
@@ -20,6 +22,8 @@ connectDB();
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/food", foodRoutes);
+app.use("/api/donors", donorRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
