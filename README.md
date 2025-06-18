@@ -18,7 +18,7 @@ A project developed during **CodeYatra Hackathon** to promote **Sustainable Deve
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer      | Technologies                        |
 |------------|-------------------------------------|
